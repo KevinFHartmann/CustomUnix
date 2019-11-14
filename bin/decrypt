@@ -1,0 +1,12 @@
+#!/bin/sh
+#set -x
+input=$1
+key=${2:-~/.ssh/id_rsa}
+suffix="secret"
+base="${input%.$suffix}"
+tar xzf "${input}"
+cd "${base}.decrypt"
+openssl rsautl -decrypt -oaep -inkey "../${key}" -in secret.key.enc -out secret.key
+openssl aes-256-cbc -d -in ${base}.enc -out "../$base" -pass file:secret.key
+cd ".."
+rm -r "${base}.decrypt"

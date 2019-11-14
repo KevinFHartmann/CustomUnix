@@ -1,0 +1,5 @@
+#!/bin/bash
+set -x
+dest_dir=$1
+shift
+cp $@ $dest_dir

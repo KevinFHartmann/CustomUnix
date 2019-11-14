@@ -1,0 +1,58 @@
+alias a='alias'
+alias e='vi ~/.aliases;source ~/.aliases'
+alias c='clear'
+# edit configuration and apply it to our shell
+alias cfg='vi ~/.bashrc;. ~/.bashrc'
+alias compile='mvn compile -Dmaven.test.skip=true'
+alias context='kubectl config current-context'
+alias unit='mvn test -Dmaven.main.skip'
+# set $X to pwd
+alias ct='currentTicket \`pwd\`'
+alias d='rm -r' 	#delete
+alias dev='kubectl config use-context argo-dev'
+alias dc='docker-compose'
+alias db='docker build . -t x'
+alias dr='docker run -p 8080:8080 --name hi x'
+alias ds='docker exec -it hi /bin/bash'
+alias dk='dkill'	# docker kill
+alias dwn='docker-compose down' 
+alias exe='chmod a+x'	# make executable
+alias f='find . -type f | x' 
+alias fn='declare -f'	# show function 
+alias fns='declare -F | y nvm_ | sub "declare -f /"' # list functions 
+alias g='goto_dir'	
+alias gh='github'	
+alias h='history | x'	# search history for given expression
+alias infra='kubectl config use-context argo-infra'
+alias java11='export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-11.0.1.jdk/Contents/Home/'
+alias java8='export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/Home/'
+alias k='kubectl'
+alias l='ls -lh'	# long list
+alias ls='ls -AFG'	# default to colour, show dot files, and file type 
+alias logs='kubectl logs'
+alias m='compile'	# maven compile 
+alias md='mkdir -p'	# make directory
+alias minikube='kubectl config use-context minikube'
+alias p='ps ax | y egrep | x' # process id search
+alias pods='kubectl get pods'
+alias package='mvn package -Dmaven.test.skip=true'
+alias proxy='ssh dcc-proxy.res.oicr.on.ca'
+alias pg='export PGDATA=~/postgres; pg_ctl restart -l ~/postgres/postgres.log &'
+# launch postgres
+alias play='ansible-playbook -i config/hosts' # play ansible playbook
+alias q='scanFor'	# query filesystem for content 
+alias qa='kubectl config use-context argo-qa'
+alias r='open -a'	# run Apple application for the given file
+alias run='SPRING_PROFILES_ACTIVE="debug" mvn spring-boot:run -Dmaven.main.skip -Dmaven.skipTests'
+# run spring with the our private configuration
+alias s='git status'
+alias spring='prj $1; mvn spring-boot:run -Dspring.config.location=~/config/$1'
+# remote shell to aws
+alias t='g $X'		# ticket directory (go to it)
+alias u='g ..'		# go up one directory level
+alias up='docker-compose up -d'  
+alias update='git pull origin develop'
+alias verify="mvn verify -Dmaven.main.skip"
+alias x='egrep -i'	# filter   
+alias y='egrep -vi'	# filter out 
+alias z='vi ~/.functions;. ~/.functions'

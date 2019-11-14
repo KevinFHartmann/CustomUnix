@@ -1,0 +1,40 @@
+#!/bin/sh
+
+usage() {
+cat <<EOT
+Usage: $0 <command> <filename> ... <command> <filename>
+
+Summary: Reads lines from standard input, and appends each line to the first file whose corresponding command returns true when run with that line as its standard input. 
+
+eg. cat moods | $0 'grep happy' happy_file 'grep sad' sad_file 'true' misc_file
+will put lines containing 'happy' into the file called 'happy file', lines
+that don't contain 'happy', but do contain 'sad' into the file called 'sad_file', and all other lines into 'misc_file'.
+EOT
+}
+
+dispatch() {
+    line=$1
+    shift
+    while test $# -gt 0;do
+          cmd=$1
+          dest=$2
+          shift;shift
+          echo $line | $cmd > /dev/null
+          if [ "$?" = 0 ]; then
+             #echo "$cmd returned true"
+             #echo "sending '$line' to dest '$dest'"
+    	     echo $line >> "$dest"
+             return
+          fi;
+    done
+}
+
+if [ $# -lt 3 ]; then
+   usage
+   exit 1;
+fi
+
+while read;do
+	dispatch "$REPLY" "$@" 
+        echo $REPLY
+done

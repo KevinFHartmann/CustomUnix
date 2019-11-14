@@ -1,0 +1,23 @@
+#!/bin/bash
+#set -x 
+input=$1
+ssh_key=$2
+suffix="secret"
+tmpdir="${input}.decrypt"
+umask 077
+mkdir "$tmpdir"
+cd "$tmpdir"
+# filename to store our randomly generated AES aes_key
+aes_key=secret.key
+# generate a random 256 bit aes_key 
+openssl rand 32 -out ${aes_key} 
+# encrypt input file with the aes_key we just generated
+openssl aes-256-cbc -in ../${input} -out ${input}.enc -pass file:${aes_key} 
+# encrypt the aes_key with the person's public ssh key 
+openssl rsautl -encrypt -oaep -pubin -inkey <(ssh-keygen -e -f ../${ssh_key} -m PKCS8) -in ${aes_key} -out ${aes_key}.enc
+# delete the secret key
+rm secret.key
+cd ..
+tar cf - "$tmpdir" | gzip -9 > ${input}."${suffix}"
+# delete the our temp dir 
+rm -r "$tmpdir"

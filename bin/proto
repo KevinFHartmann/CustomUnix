@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x 
+file=$1
+file2=${1%.c}_proto.h
+grep '^[^ {}#]' ${file} | sed -e 's/[ ]*{/;/' > $file2

@@ -1,0 +1,120 @@
+# Shell functions 
+#
+# In combination with the .aliases I use, 'z' edits this file and updates the
+# current shell with the latest version, 'fns' lists shell functions, and 
+# 'fn <name>' gives the code for a given function 
+#
+# add path to front of search path
+function addPath { export PATH=$PATH:$1 ; } 
+
+# list just the directories, files, or dotfiles in current directory 
+dirs () { find `pwd` -mindepth 1 -maxdepth 1 -type d | xargs basename ; }
+files() { find `pwd` -mindepth 1 -maxdepth 1 -type f -not -iname ".*" | xargs basename ; }
+dotfiles() { find `pwd` -mindepth 1 -maxdepth 1 -type f -iname ".*" | xargs basename ; }
+
+# port forward to a kubernetes pod
+fwd () { local pod=$1; local to=${2:-12345}; local from=${3:-5432};kubectl port-forward $pod $to:$from ; }
+
+# run a shell on a kubernetes pod
+ks () { local pod=${1:-$POD}; kubectl exec -it $pod /bin/sh ; }
+
+# run postgres on a given port
+function pl { local port=${1:-12345}; psql -h localhost -U postgres -p $port ; }
+
+# goto a project in my project's directory
+function prj { g ~/projects/$1 ; } 
+
+# set the environment variable POD to a kubernetes pod name matching a given
+# name 
+pod () { export POD=$(kubectl get pods | grep $1 | grep -E -v 'postgres|db|etc' | cut -d" " -f1); echo "POD now='$POD'"; } 
+
+# Find all java filenames, and run a missingCopyright script on all of them
+function checkCopyright { f java | z missingCopyright F; }
+
+# Set the current ticket directory to be the current directory; remember
+# it in .currentTicket so that we will set it again automatically when we
+# log in and out for the day.
+# 
+# Together with my aliases: t<enter> will go to my current ticket directory; 
+# ct<enter> will set it to the current directory.
+#
+# Path $X will always refer to the current directory of what I'm working on,
+# so I can do cp $X y, find $X, etc. as necessary
+function currentTicket { # set current ticket
+    echo "X=$1" > $HOME/.currentTicket
+    . $HOME/.currentTicket
+}
+
+# docker push 
+function dp { repo=${2:-kevinhartmann}; docker build . -t ${repo}/$1;docker push ${repo}/$1; } 
+
+# get url
+function get { curl -s --request GET --url "$1" ; } # run silent a get
+
+# get the contents of a space delimited column of text by header name 
+function getColumn { field=$1; shift; read; pos=`echo "$REPLY"| sed -e "s/$field.*//" | wc -c`; cat | cut -c${pos}- | cut -d' ' -f1 ; } 
+
+# grab a project from github, and put it into my projects directory 
+function github { org=${2:-icgc-argo};project=$1; cd ~/projects; mkdir -p $org; cd $org; git clone git@github.com:$org/$project; } # fetch project from github
+
+## cd + ls in one cmd, with proper colour highlighting, and no unwanted directories that Apple assumes I care about, like 'Movies' on my work computer 
+function goto_dir { cd ${1:+"$1"}; /bin/ls -F | y $APPLE_DIRS | column | hilight ; } 
+
+# this directory 
+function here { basename `pwd`; }  
+
+# run a command, keep the output, page through it 
+function keep { local f=${LOGFILE:-$1.log}; $@ 2>&1 | tee -- $f | less -R; } 
+
+# generate a random password 
+function pass { dd if=/dev/urandom | base64 | dd bs=1 count=${1:-27} 2>/dev/null | tee ${2:-pass}; echo ; }    
+
+# I alias this to q (query) to make it faster to type on the command line. 
+# I kept the full name in case I wanted to use it in scripts
+function scanFor { grep -r $@ .; }	# scan files for given term 
+
+# substitutions
+# eg. % s foo/bar $text
+function s { local cmd=$1;shift;echo "${@:-$f}" | sed -e "s/$cmd/g" ; }
+
+# eg.% cat $file | sub foo/bar  
+function sub { local cmd=$1;shift;sed -e "s/$cmd/g" $@; }
+
+# globally replace text in all files & subdirectories
+# eg. % sub "Copyright 2010/Copyright 2010-2011"
+replace() { grep -rl $1 . | xargs sed -i -e "s/$1/$2/g" ; } 
+
+# docker shortcuts
+function dls { docker images; }
+function dvls { docker volume ls ; }
+function dnls { docker network ls ; }
+function dvrm { docker volume rm $@; }
+function dnrm { docker network rm $@; }
+function dps { docker ps -a; }
+function drm { docker rmi $@; }
+function dkill { docker kill $@; }
+
+# run a command line shell in a docker container
+function drun { docker run -i -t ${1:-alpine:latest} /bin/sh; }
+
+# get a shell for a running docker container with the given name
+function dsh { container=$1;docker exec -i -t -u root $container /bin/bash; }
+
+###
+# mass removal from docker
+###
+function dvclear { dvls | getColumn VOL | xargs docker volume rm ; }
+# delete all docker volumes 
+
+function dslay  { dps | getColumn NAME | xargs docker kill; }
+# delete all containers (killing running ones first) 
+
+function dclear  { dslay; dps | getColumn NAME | xargs docker rm; }
+# delete all containers (killing running ones first)
+
+function dclean  { dvclear; dclear; dls | getColumn IMAGE | xargs docker rmi; }
+# delete all docker volumes, containers, and images 
+
+# Run a command on standard input, but always output (keep) the first line 
+# (the header line)
+function keepHeader { export CMD=$@; ( read; echo "$REPLY"; eval $CMD) ; }
